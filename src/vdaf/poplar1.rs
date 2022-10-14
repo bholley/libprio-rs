@@ -438,11 +438,13 @@ fn get_level(agg_param: &BTreeSet<IdpfInput>) -> Result<usize, VdafError> {
     }
 }
 
-impl<I, P, const L: usize> Aggregator<L> for Poplar1<I, P, L>
+impl<I, P, const L: usize> Aggregator for Poplar1<I, P, L>
 where
     I: Idpf<2, 2>,
     P: Prg<L>,
 {
+    const VERIFY_KEY_LEN: usize = L;
+
     type PrepareState = Poplar1PrepareState<I::Field>;
     type PrepareShare = Poplar1PrepareMessage<I::Field>;
     type PrepareMessage = Poplar1PrepareMessage<I::Field>;
@@ -571,7 +573,7 @@ where
         &self,
         mut state: Poplar1PrepareState<I::Field>,
         msg: Poplar1PrepareMessage<I::Field>,
-    ) -> Result<PrepareTransition<Self, L>, VdafError> {
+    ) -> Result<PrepareTransition<Self>, VdafError> {
         match &state.sketch {
             SketchState::RoundOne => {
                 if msg.0.len() != 3 {

@@ -764,11 +764,13 @@ where
     }
 }
 
-impl<T, P, const L: usize> Aggregator<L> for Prio3<T, P, L>
+impl<T, P, const L: usize> Aggregator for Prio3<T, P, L>
 where
     T: Type,
     P: Prg<L>,
 {
+    const VERIFY_KEY_LEN: usize = L;
+
     type PrepareState = Prio3PrepareState<T::Field, L>;
     type PrepareShare = Prio3PrepareShare<T::Field, L>;
     type PrepareMessage = Prio3PrepareMessage<L>;
@@ -943,7 +945,7 @@ where
         &self,
         step: Prio3PrepareState<T::Field, L>,
         msg: Prio3PrepareMessage<L>,
-    ) -> Result<PrepareTransition<Self, L>, VdafError> {
+    ) -> Result<PrepareTransition<Self>, VdafError> {
         if self.typ.joint_rand_len() > 0 {
             // Check that the joint randomness was correct.
             if step.joint_rand_seed.as_ref().unwrap() != msg.joint_rand_seed.as_ref().unwrap() {

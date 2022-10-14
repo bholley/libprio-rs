@@ -170,10 +170,13 @@ where
 }
 
 /// The Aggregator's role in the execution of a VDAF.
-pub trait Aggregator<const L: usize>: Vdaf
+pub trait Aggregator: Vdaf
 where
     for<'a> &'a Self::AggregateShare: Into<Vec<u8>>,
 {
+    /// The length of a verification key, in bytes.
+    const VERIFY_KEY_LEN: usize;
+
     /// State of the Aggregator during the Prepare process.
     type PrepareState: Clone + Debug;
 
@@ -194,7 +197,7 @@ where
     /// message.
     fn prepare_init(
         &self,
-        verify_key: &[u8; L],
+        verify_key: &[u8; Self::VERIFY_KEY_LEN],
         agg_id: usize,
         agg_param: &Self::AggregationParam,
         nonce: &[u8],
@@ -219,7 +222,7 @@ where
         &self,
         state: Self::PrepareState,
         input: Self::PrepareMessage,
-    ) -> Result<PrepareTransition<Self, L>, VdafError>;
+    ) -> Result<PrepareTransition<Self>, VdafError>;
 
     /// Aggregates a sequence of output shares into an aggregate share.
     fn aggregate<M: IntoIterator<Item = Self::OutputShare>>(
@@ -245,7 +248,7 @@ where
 
 /// A state transition of an Aggregator during the Prepare process.
 #[derive(Debug)]
-pub enum PrepareTransition<V: Aggregator<L>, const L: usize>
+pub enum PrepareTransition<V: Aggregator>
 where
     for<'a> &'a V::AggregateShare: Into<Vec<u8>>,
 {

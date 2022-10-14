@@ -185,14 +185,16 @@ impl ParameterizedDecode<Prio2PrepareState> for Prio2PrepareShare {
     }
 }
 
-impl Aggregator<32> for Prio2 {
+impl Aggregator for Prio2 {
+    const VERIFY_KEY_LEN: usize = 32;
+
     type PrepareState = Prio2PrepareState;
     type PrepareShare = Prio2PrepareShare;
     type PrepareMessage = ();
 
     fn prepare_init(
         &self,
-        agg_key: &[u8; 32],
+        agg_key: &[u8; Self::VERIFY_KEY_LEN],
         agg_id: usize,
         _agg_param: &(),
         nonce: &[u8],
@@ -239,7 +241,7 @@ impl Aggregator<32> for Prio2 {
         &self,
         state: Prio2PrepareState,
         _input: (),
-    ) -> Result<PrepareTransition<Self, 32>, VdafError> {
+    ) -> Result<PrepareTransition<Self>, VdafError> {
         let data = match state.0 {
             Share::Leader(data) => data,
             Share::Helper(seed) => {
