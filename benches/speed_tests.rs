@@ -234,14 +234,29 @@ pub fn prio3_client(c: &mut Criterion) {
     });
 
     let len = 1000;
-    let prio3 = Prio3::new_aes128_count_vec(num_shares, len).unwrap();
     let measurement = vec![0; len];
+
+    let prio3 = Prio3::new_aes128_count_vec(num_shares, len).unwrap();
     println!(
         "prio3 countvec ({} len) share size = {}",
         len,
         prio3_input_share_size(&prio3.shard(&measurement).unwrap().1)
     );
     c.bench_function(&format!("prio3 countvec ({} len)", len), |b| {
+        b.iter(|| {
+            prio3.shard(&measurement).unwrap();
+        })
+    });
+
+    let prio3 = Prio3::new_k12_count_vec(num_shares, len).unwrap();
+    c.bench_function(&format!("prio3 countvec k12 ({} len)", len), |b| {
+        b.iter(|| {
+            prio3.shard(&measurement).unwrap();
+        })
+    });
+
+    let prio3 = Prio3::new_sha3_count_vec(num_shares, len).unwrap();
+    c.bench_function(&format!("prio3 countvec sha3 ({} len)", len), |b| {
         b.iter(|| {
             prio3.shard(&measurement).unwrap();
         })
@@ -318,7 +333,7 @@ fn prio3_input_share_size<F: FieldElement, const L: usize>(
 }
 
 #[cfg(feature = "prio2")]
-criterion_group!(benches, count_vec, prio3_client, poly_mul, prng, fft);
+criterion_group!(benches, prio3_client, count_vec, poly_mul, prng, fft);
 #[cfg(not(feature = "prio2"))]
 criterion_group!(benches, prio3_client, poly_mul, prng, fft);
 

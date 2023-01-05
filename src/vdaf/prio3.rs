@@ -28,7 +28,7 @@
 //! [draft-irtf-cfrg-vdaf-03]: https://datatracker.ietf.org/doc/draft-irtf-cfrg-vdaf/03/
 
 #[cfg(feature = "crypto-dependencies")]
-use super::prg::PrgAes128;
+use super::prg::{PrgAes128, PrgK12, PrgSha3};
 use super::{DST_LEN, VERSION};
 use crate::codec::{CodecError, Decode, Encode, ParameterizedDecode};
 use crate::field::FieldElement;
@@ -82,6 +82,34 @@ impl Prio3Aes128CountVec {
     /// Construct an instance of Prio3Aes1238CountVec with the given number of aggregators. `len`
     /// defines the length of each measurement.
     pub fn new_aes128_count_vec(num_aggregators: u8, len: usize) -> Result<Self, VdafError> {
+        Prio3::new(num_aggregators, CountVec::new(len))
+    }
+}
+
+/// Prio3 count-vector with KangarooTwelve.
+#[cfg(feature = "crypto-dependencies")]
+pub type Prio3K12CountVec =
+    Prio3<CountVec<Field128, ParallelSum<Field128, BlindPolyEval<Field128>>>, PrgK12, 16>;
+
+#[cfg(feature = "crypto-dependencies")]
+impl Prio3K12CountVec {
+    /// Construct an instance of Prio3K12CountVec with the given number of aggregators. `len`
+    /// defines the length of each measurement.
+    pub fn new_k12_count_vec(num_aggregators: u8, len: usize) -> Result<Self, VdafError> {
+        Prio3::new(num_aggregators, CountVec::new(len))
+    }
+}
+
+/// Prio3 count-vector with SHA-3 (SHAKE128).
+#[cfg(feature = "crypto-dependencies")]
+pub type Prio3Sha3CountVec =
+    Prio3<CountVec<Field128, ParallelSum<Field128, BlindPolyEval<Field128>>>, PrgSha3, 16>;
+
+#[cfg(feature = "crypto-dependencies")]
+impl Prio3Sha3CountVec {
+    /// Construct an instance of Prio3Sha3CountVec with the given number of aggregators. `len`
+    /// defines the length of each measurement.
+    pub fn new_sha3_count_vec(num_aggregators: u8, len: usize) -> Result<Self, VdafError> {
         Prio3::new(num_aggregators, CountVec::new(len))
     }
 }

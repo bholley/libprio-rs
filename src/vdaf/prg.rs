@@ -20,6 +20,7 @@ use std::{
     fmt::Debug,
     io::{Cursor, Read},
 };
+use tiny_keccak::{Hasher, IntoXof, KangarooTwelve, KangarooTwelveXof, Shake, Xof};
 
 /// Function pointer to fill a buffer with random bytes. Under normal operation,
 /// `getrandom::getrandom()` will be used, but other implementations can be used to control
@@ -166,6 +167,94 @@ impl Debug for SeedStreamAes128 {
         // [1]: https://docs.rs/ctr/latest/ctr/struct.CtrCore.html
         // [2]: https://docs.rs/cipher/latest/cipher/struct.StreamCipherCoreWrapper.html
         self.0.get_core().fmt(f)
+    }
+}
+
+/// KangarooTwelve, as specifed in draft-irtf-cfrg-kangarootwelve-08.
+///
+/// TODO(cjpatton) Confirm that the implementation we're using complies with the work-in-progress
+/// standard.
+#[derive(Clone)]
+#[cfg(feature = "crypto-dependencies")]
+pub struct PrgK12(KangarooTwelve<&'static str>);
+
+#[cfg(feature = "crypto-dependencies")]
+impl Debug for PrgK12 {
+    fn fmt(&self, _f: &mut Formatter<'_>) -> std::fmt::Result {
+        // TODO(cjpatton) Consider not requiring `Prg: Debug`.
+        todo!()
+    }
+}
+
+#[cfg(feature = "crypto-dependencies")]
+impl Prg<16> for PrgK12 {
+    type SeedStream = SeedStreamK12;
+
+    fn init(seed_bytes: &[u8; 16]) -> Self {
+        let mut hasher = KangarooTwelve::new("");
+        hasher.update(&seed_bytes[..]);
+        Self(hasher)
+    }
+
+    fn update(&mut self, data: &[u8]) {
+        self.0.update(data);
+    }
+
+    fn into_seed_stream(self) -> SeedStreamK12 {
+        SeedStreamK12(self.0.into_xof())
+    }
+}
+
+/// KangarooTwelve in XOF-mode.
+#[cfg(feature = "crypto-dependencies")]
+pub struct SeedStreamK12(KangarooTwelveXof);
+
+#[cfg(feature = "crypto-dependencies")]
+impl SeedStream for SeedStreamK12 {
+    fn fill(&mut self, buf: &mut [u8]) {
+        self.0.squeeze(buf)
+    }
+}
+
+/// SHA-3 (SHAKE128).
+#[derive(Clone)]
+#[cfg(feature = "crypto-dependencies")]
+pub struct PrgSha3(Shake);
+
+#[cfg(feature = "crypto-dependencies")]
+impl Debug for PrgSha3 {
+    fn fmt(&self, _f: &mut Formatter<'_>) -> std::fmt::Result {
+        todo!()
+    }
+}
+
+#[cfg(feature = "crypto-dependencies")]
+impl Prg<16> for PrgSha3 {
+    type SeedStream = SeedStreamSha3;
+
+    fn init(seed_bytes: &[u8; 16]) -> Self {
+        let mut hasher = Shake::v128();
+        hasher.update(&seed_bytes[..]);
+        Self(hasher)
+    }
+
+    fn update(&mut self, data: &[u8]) {
+        self.0.update(data)
+    }
+
+    fn into_seed_stream(self) -> SeedStreamSha3 {
+        SeedStreamSha3(self.0)
+    }
+}
+
+/// SHA-3 (SHAKE128) output.
+#[cfg(feature = "crypto-dependencies")]
+pub struct SeedStreamSha3(Shake);
+
+#[cfg(feature = "crypto-dependencies")]
+impl SeedStream for SeedStreamSha3 {
+    fn fill(&mut self, buf: &mut [u8]) {
+        self.0.squeeze(buf)
     }
 }
 

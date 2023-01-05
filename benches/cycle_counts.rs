@@ -128,9 +128,23 @@ fn prio3_client_sum_32() -> Vec<Prio3InputShare<Field128, 16>> {
     prio3.shard(&black_box(measurement)).unwrap().1
 }
 
-fn prio3_client_count_vec_1000() -> Vec<Prio3InputShare<Field128, 16>> {
+fn prio3_client_aes128_count_vec_1000() -> Vec<Prio3InputShare<Field128, 16>> {
     let len = 1000;
     let prio3 = Prio3::new_aes128_count_vec(2, len).unwrap();
+    let measurement = vec![0; len];
+    prio3.shard(&black_box(measurement)).unwrap().1
+}
+
+fn prio3_client_k12_count_vec_1000() -> Vec<Prio3InputShare<Field128, 16>> {
+    let len = 1000;
+    let prio3 = Prio3::new_k12_count_vec(2, len).unwrap();
+    let measurement = vec![0; len];
+    prio3.shard(&black_box(measurement)).unwrap().1
+}
+
+fn prio3_client_sha3_count_vec_1000() -> Vec<Prio3InputShare<Field128, 16>> {
+    let len = 1000;
+    let prio3 = Prio3::new_sha3_count_vec(2, len).unwrap();
     let measurement = vec![0; len];
     prio3.shard(&black_box(measurement)).unwrap().1
 }
@@ -166,7 +180,9 @@ cfg_if! {
                     prio3_client_count,
                     prio3_client_histogram_11,
                     prio3_client_sum_32,
-                    prio3_client_count_vec_1000,
+                    prio3_client_aes128_count_vec_1000,
+                    prio3_client_k12_count_vec_1000,
+                    prio3_client_sha3_count_vec_1000,
                     prio3_client_count_vec_multithreaded_1000,
                 );
             } else {
@@ -184,7 +200,9 @@ cfg_if! {
                     prio3_client_count,
                     prio3_client_histogram_11,
                     prio3_client_sum_32,
-                    prio3_client_count_vec_1000,
+                    prio3_client_aes128_count_vec_1000,
+                    prio3_client_k12_count_vec_1000,
+                    prio3_client_sha3_count_vec_1000,
                 );
             }
         }
@@ -199,7 +217,9 @@ cfg_if! {
                     prio3_client_count,
                     prio3_client_histogram_11,
                     prio3_client_sum_32,
-                    prio3_client_count_vec_1000,
+                    prio3_client_aes128_count_vec_1000,
+                    prio3_client_k12_count_vec_1000,
+                    prio3_client_sha3_count_vec_1000,
                     prio3_client_count_vec_multithreaded_1000,
                 );
             } else {
@@ -211,7 +231,9 @@ cfg_if! {
                     prio3_client_count,
                     prio3_client_histogram_11,
                     prio3_client_sum_32,
-                    prio3_client_count_vec_1000,
+                    prio3_client_aes128_count_vec_1000,
+                    prio3_client_k12_count_vec_1000,
+                    prio3_client_sha3_count_vec_1000,
                 );
             }
         }
